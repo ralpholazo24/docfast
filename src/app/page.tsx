@@ -1,12 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import type { DocumentData, GeneratedDocument } from '@/types/document-generator';
 import * as XLSX from 'xlsx';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { FileUp, Upload } from 'lucide-react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Progress } from '@/components/ui/progress';
 
 const DocumentGenerator = () => {
   const [document, setDocument] = useState<File | null>(null);
@@ -85,47 +90,70 @@ const DocumentGenerator = () => {
   };
 
   return (
-    <Card className="w-full max-w-4xl">
-      <CardHeader>
-        <CardTitle>Document Generator</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-6">
-          <div>
-            <label htmlFor="document-upload" className="block font-medium mb-2">
-              Upload Template Document
-            </label>
-            <input
-              id="document-upload"
-              type="file"
-              onChange={handleDocumentUpload}
-              accept=".docx"
-              className="block w-full border border-gray-300 rounded-md px-3 py-2"
-            />
-          </div>
+    <div className="container mx-auto py-8">
+      <Card className="w-full max-w-4xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-2xl">Document Generator</CardTitle>
+          <CardDescription>
+            Upload a template document and data file to generate multiple documents automatically.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          <div className="grid gap-6">
+            <div className="space-y-2">
+              <Label htmlFor="document-upload">Template Document</Label>
+              <div className="grid w-full gap-2">
+                <Input
+                  id="document-upload"
+                  type="file"
+                  onChange={handleDocumentUpload}
+                  accept=".docx"
+                  className="cursor-pointer"
+                />
+                {document && (
+                  <Alert>
+                    <FileUp className="h-4 w-4" />
+                    <AlertDescription>
+                      Uploaded: {document.name}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </div>
 
-          <div>
-            <label htmlFor="data-file-upload" className="block font-medium mb-2">
-              Upload Data File
-            </label>
-            <input
-              id="data-file-upload"
-              type="file"
-              onChange={handleDataFileUpload}
-              accept=".xlsx,.xls"
-              className="block w-full border border-gray-300 rounded-md px-3 py-2"
-            />
+            <div className="space-y-2">
+              <Label htmlFor="data-file-upload">Data File (Excel)</Label>
+              <div className="grid w-full gap-2">
+                <Input
+                  id="data-file-upload"
+                  type="file"
+                  onChange={handleDataFileUpload}
+                  accept=".xlsx,.xls"
+                  className="cursor-pointer"
+                />
+                {dataFile && (
+                  <Alert>
+                    <Upload className="h-4 w-4" />
+                    <AlertDescription>
+                      Uploaded: {dataFile.name}
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </div>
           </div>
 
           {csvPreview.headers.length > 0 && (
-            <div className="mt-6">
-              <h3 className="font-medium mb-2">Data Preview</h3>
-              <div className="border rounded-lg overflow-x-auto">
+            <div className="space-y-2">
+              <Label>Data Preview</Label>
+              <ScrollArea className="h-[300px] border rounded-md">
                 <Table>
                   <TableHeader>
                     <TableRow>
                       {csvPreview.headers.map((header, index) => (
-                        <TableHead key={index}>{header}</TableHead>
+                        <TableHead key={index} className="bg-muted/50">
+                          {header}
+                        </TableHead>
                       ))}
                     </TableRow>
                   </TableHeader>
@@ -139,19 +167,26 @@ const DocumentGenerator = () => {
                     ))}
                   </TableBody>
                 </Table>
-              </div>
+              </ScrollArea>
+              <p className="text-sm text-muted-foreground">
+                Showing first 5 rows of {csvPreview.rows.length} total rows
+              </p>
             </div>
           )}
-
+        </CardContent>
+        
+        <CardFooter className="flex flex-col gap-4">
+          {isGenerating && <Progress value={33} className="w-full" />}
           <Button
             onClick={generateDocuments}
             disabled={isGenerating || !document || !dataFile}
+            className="w-full"
           >
-            {isGenerating ? "Generating..." : "Generate Documents"}
+            {isGenerating ? "Generating Documents..." : "Generate Documents"}
           </Button>
-        </div>
-      </CardContent>
-    </Card>
+        </CardFooter>
+      </Card>
+    </div>
   );
 };
 
