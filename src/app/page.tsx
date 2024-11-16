@@ -13,7 +13,7 @@ import { GenerateButton } from '@/components/document-generator/generate-button'
 import { UserGuide } from '@/components/shared/guide';
 import type { CsvPreview } from '@/components/document-generator/types';
 
-export function DocumentGenerator() {
+export default function Page() {
   const [document, setDocument] = useState<File | null>(null);
   const [dataFile, setDataFile] = useState<File | null>(null);
   const [csvPreview, setCsvPreview] = useState<CsvPreview>({
@@ -62,9 +62,6 @@ export function DocumentGenerator() {
       const formData = new FormData();
       formData.append('template', document);
       formData.append('dataFile', dataFile);
-
-      console.log('Template file:', document);
-      console.log('Data file:', dataFile);
 
       const response = await fetch('/api/generate-document', {
         method: 'POST',
@@ -152,5 +149,3 @@ export function DocumentGenerator() {
     </div>
   );
 }
-
-export default DocumentGenerator;
