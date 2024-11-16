@@ -2,25 +2,28 @@
 
 import React, { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import * as XLSX from 'xlsx';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { FileUp, Upload } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Progress } from '@/components/ui/progress';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { DocumentUpload } from '@/components/document-generator/document-upload';
+import { DataUpload } from '@/components/document-generator/data-upload';
+import { DataPreview } from '@/components/document-generator/data-preview';
+import { GenerateButton } from '@/components/document-generator/generate-button';
+import { UserGuide } from '@/components/shared/guide';
+import type { CsvPreview } from '@/components/document-generator/types';
 
-const DocumentGenerator = () => {
+export function DocumentGenerator() {
   const [document, setDocument] = useState<File | null>(null);
   const [dataFile, setDataFile] = useState<File | null>(null);
-  const [csvPreview, setCsvPreview] = useState<{ headers: string[]; rows: string[][] }>({
+  const [csvPreview, setCsvPreview] = useState<CsvPreview>({
     headers: [],
     rows: []
   });
   const [isGenerating, setIsGenerating] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const handleDocumentUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,104 +93,64 @@ const DocumentGenerator = () => {
   };
 
   return (
-    <div className="container mx-auto py-8">
-      <Card className="w-full max-w-4xl mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl">Document Generator</CardTitle>
-          <CardDescription>
-            Upload a template document and data file to generate multiple documents automatically.
+    <div className="container mx-auto py-12 px-4 min-h-screen bg-background/50">
+      <Card className="w-full max-w-3xl mx-auto shadow-lg">
+        <CardHeader className="space-y-4 pb-6">
+          <CardTitle className="text-3xl font-medium font-bold">DocFast</CardTitle>
+          <CardDescription className="text-base">
+            Transform your document workflow in two simple steps
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-8">
-          <div className="grid gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="document-upload">Template Document</Label>
-              <div className="grid w-full gap-2">
-                <Input
-                  id="document-upload"
-                  type="file"
-                  onChange={handleDocumentUpload}
-                  accept=".docx"
-                  className="cursor-pointer"
-                />
-                {document && (
-                  <Alert>
-                    <FileUp className="h-4 w-4" />
-                    <AlertDescription>
-                      Uploaded: {document.name}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="data-file-upload">Data File (Excel)</Label>
-              <div className="grid w-full gap-2">
-                <Input
-                  id="data-file-upload"
-                  type="file"
-                  onChange={handleDataFileUpload}
-                  accept=".xlsx,.xls"
-                  className="cursor-pointer"
-                />
-                {dataFile && (
-                  <Alert>
-                    <Upload className="h-4 w-4" />
-                    <AlertDescription>
-                      Uploaded: {dataFile.name}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </div>
-          </div>
+        <CardContent className="space-y-10">
+          <DocumentUpload 
+            document={document}
+            onDocumentUpload={handleDocumentUpload}
+          />
+          
+          <DataUpload 
+            dataFile={dataFile}
+            onDataFileUpload={handleDataFileUpload}
+          />
 
           {csvPreview.headers.length > 0 && (
-            <div className="space-y-2">
-              <Label>Data Preview</Label>
-              <ScrollArea className="h-[300px] border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      {csvPreview.headers.map((header, index) => (
-                        <TableHead key={index} className="bg-muted/50">
-                          {header}
-                        </TableHead>
-                      ))}
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {csvPreview.rows.slice(0, 5).map((row, rowIndex) => (
-                      <TableRow key={rowIndex}>
-                        {row.map((cell, cellIndex) => (
-                          <TableCell key={cellIndex}>{cell}</TableCell>
-                        ))}
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </ScrollArea>
-              <p className="text-sm text-muted-foreground">
-                Showing first 5 rows of {csvPreview.rows.length} total rows
-              </p>
-            </div>
+            <DataPreview
+              csvPreview={csvPreview}
+              currentPage={currentPage}
+              rowsPerPage={rowsPerPage}
+              setRowsPerPage={setRowsPerPage}
+              setCurrentPage={setCurrentPage}
+              isLoading={isGenerating}
+            />
           )}
         </CardContent>
         
-        <CardFooter className="flex flex-col gap-4">
-          {isGenerating && <Progress value={33} className="w-full" />}
-          <Button
-            onClick={generateDocuments}
-            disabled={isGenerating || !document || !dataFile}
-            className="w-full"
-          >
-            {isGenerating ? "Generating Documents..." : "Generate Documents"}
-          </Button>
+        <CardFooter className="flex flex-col gap-4 pt-6">
+          {isGenerating && (
+            <Progress value={33} className="w-full h-1 bg-primary/20" />
+          )}
+          <GenerateButton
+            isGenerating={isGenerating}
+            document={document}
+            dataFile={dataFile}
+            onGenerate={generateDocuments}
+            onShowGuide={() => setShowGuide(true)}
+          />
         </CardFooter>
       </Card>
+
+      {showGuide && (
+        <Dialog open={showGuide} onOpenChange={setShowGuide}>
+          <DialogContent className="max-w-4xl">
+            <DialogHeader>
+              <DialogTitle>How to Use DocFast</DialogTitle>
+            </DialogHeader>
+            <UserGuide />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
-};
+}
 
 export default DocumentGenerator;
