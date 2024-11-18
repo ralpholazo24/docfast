@@ -12,6 +12,8 @@ import { DataPreview } from '@/components/document-generator/data-preview';
 import { GenerateButton } from '@/components/document-generator/generate-button';
 import { UserGuide } from '@/components/shared/guide';
 import type { CsvPreview } from '@/components/document-generator/types';
+import { Navbar } from "@/components/layout/navbar";
+import { Footer } from "@/components/layout/footer";
 
 export default function Page() {
   const [document, setDocument] = useState<File | null>(null);
@@ -90,62 +92,68 @@ export default function Page() {
   };
 
   return (
-    <div className="container mx-auto py-12 px-4 min-h-screen bg-background/50">
-      <Card className="w-full max-w-3xl mx-auto shadow-lg">
-        <CardHeader className="space-y-4 pb-6">
-          <CardTitle className="text-3xl font-medium font-bold">DocFast</CardTitle>
-          <CardDescription className="text-base">
-            Transform your document workflow in two simple steps
-          </CardDescription>
-        </CardHeader>
-
-        <CardContent className="space-y-10">
-          <DocumentUpload 
-            document={document}
-            onDocumentUpload={handleDocumentUpload}
-          />
-          
-          <DataUpload 
-            dataFile={dataFile}
-            onDataFileUpload={handleDataFileUpload}
-          />
-
-          {csvPreview.headers.length > 0 && (
-            <DataPreview
-              csvPreview={csvPreview}
-              currentPage={currentPage}
-              rowsPerPage={rowsPerPage}
-              setRowsPerPage={setRowsPerPage}
-              setCurrentPage={setCurrentPage}
-              isLoading={isGenerating}
-            />
-          )}
-        </CardContent>
+    <>
+    
+      <Navbar />
+      <div className="container mx-auto py-12 px-4 min-h-screen bg-background/50">
         
-        <CardFooter className="flex flex-col gap-4 pt-6">
-          {isGenerating && (
-            <Progress value={33} className="w-full h-1 bg-primary/20" />
-          )}
-          <GenerateButton
-            isGenerating={isGenerating}
-            document={document}
-            dataFile={dataFile}
-            onGenerate={generateDocuments}
-            onShowGuide={() => setShowGuide(true)}
-          />
-        </CardFooter>
-      </Card>
+        <Card className="w-full max-w-3xl mx-auto shadow-lg">
+          <CardHeader className="space-y-4 pb-6">
+            <CardTitle className="text-3xl font-medium font-bold">DocFast</CardTitle>
+            <CardDescription className="text-base">
+              Transform your document workflow in two simple steps
+            </CardDescription>
+          </CardHeader>
 
-      {showGuide && (
-        <Dialog open={showGuide} onOpenChange={setShowGuide}>
-          <DialogContent className="max-w-4xl">
-            <DialogHeader>
-              <DialogTitle>How to Use DocFast</DialogTitle>
-            </DialogHeader>
-            <UserGuide />
-          </DialogContent>
-        </Dialog>
-      )}
-    </div>
+          <CardContent className="space-y-10">
+            <DocumentUpload 
+              document={document}
+              onDocumentUpload={handleDocumentUpload}
+            />
+            
+            <DataUpload 
+              dataFile={dataFile}
+              onDataFileUpload={handleDataFileUpload}
+            />
+
+            {csvPreview.headers.length > 0 && (
+              <DataPreview
+                csvPreview={csvPreview}
+                currentPage={currentPage}
+                rowsPerPage={rowsPerPage}
+                setRowsPerPage={setRowsPerPage}
+                setCurrentPage={setCurrentPage}
+                isLoading={isGenerating}
+              />
+            )}
+          </CardContent>
+          
+          <CardFooter className="flex flex-col gap-4 pt-6">
+            {isGenerating && (
+              <Progress value={33} className="w-full h-1 bg-primary/20" />
+            )}
+            <GenerateButton
+              isGenerating={isGenerating}
+              document={document}
+              dataFile={dataFile}
+              onGenerate={generateDocuments}
+              onShowGuide={() => setShowGuide(true)}
+            />
+          </CardFooter>
+        </Card>
+
+        {showGuide && (
+          <Dialog open={showGuide} onOpenChange={setShowGuide}>
+            <DialogContent className="max-w-4xl">
+              <DialogHeader>
+                <DialogTitle>How to Use DocFast</DialogTitle>
+              </DialogHeader>
+              <UserGuide />
+            </DialogContent>
+          </Dialog>
+        )}
+      </div>
+      <Footer />
+    </>
   );
 }
